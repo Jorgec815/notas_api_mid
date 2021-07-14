@@ -4,6 +4,8 @@ import (
 	"github.com/astaxie/beego"
 	"github.com/astaxie/beego/logs"
 	"github.com/udistrital/utils_oas/request"
+	"github.com/jorgec815/notas_api_mid/models"
+	"github.com/jorgec815/notas_api_mid/helpers"
 )
 
 // EstudianteController operations for Estudiante
@@ -77,17 +79,26 @@ func (c *EstudianteController) Delete() {
 
 }
 
-func (c *EstudianteController) CalcularDefinitiva(){
+func (c *EstudianteController) Definitiva(){
 	IdEstudiante := c.Ctx.Input.Param(":id")
 
 	var res map[string]interface{}
 
 	if err := request.GetJson(beego.AppConfig.String("UrlCrud")+"/estudiante/"+IdEstudiante, &res); err == nil{
+		c.Data["json"] = map[string]interface{}{"Success": true, "Status": "200", "Message": "Request successful", "Data": res}
+	}else{
 		logs.Error(err)
 		c.Data["mesaage"] = "Error service GetOne: The request contains an incorrect parameter or no record exists"
 		c.Abort("404")
-	}else{
+	}
+
+	v := models.Estudiante{Id: id, notaDef: helpers.Definitiva(res.nota1, res.nota2, res.nota3)}
+	if err := request.SendJson(beego.AppConfig.String("UrlCrud")+"/estudiante/"+IdEstudiante, &res, v); err == nil{
 		c.Data["json"] = map[string]interface{}{"Success": true, "Status": "200", "Message": "Request successful", "Data": res}
+	} else {
+		logs.Error(err)
+		c.Data["mesaage"] = "Error service Put: The request contains an incorrect data type or an invalid parameter"
+		c.Abort("400")
 	}
 	c.ServeJSON()
 }

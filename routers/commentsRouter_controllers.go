@@ -27,7 +27,7 @@ func init() {
 
     beego.GlobalControllerRouter["github.com/jorgec815/notas_api_mid/controllers:EstudianteController"] = append(beego.GlobalControllerRouter["github.com/jorgec815/notas_api_mid/controllers:EstudianteController"],
         beego.ControllerComments{
-            Method: "CalcularDefinitiva",
+            Method: "GetOne",
             Router: "/:id",
             AllowHTTPMethods: []string{"get"},
             MethodParams: param.Make(),
@@ -36,7 +36,7 @@ func init() {
 
     beego.GlobalControllerRouter["github.com/jorgec815/notas_api_mid/controllers:EstudianteController"] = append(beego.GlobalControllerRouter["github.com/jorgec815/notas_api_mid/controllers:EstudianteController"],
         beego.ControllerComments{
-            Method: "Put",
+            Method: "Definitiva",
             Router: "/:id",
             AllowHTTPMethods: []string{"put"},
             MethodParams: param.Make(),
