@@ -15,7 +15,7 @@ type EstudianteController struct {
 
 // URLMapping ...
 func (c *EstudianteController) URLMapping() {
-	c.Mapping("CalcularDefinitiva", c.CalcularDefinitiva)
+	c.Mapping("Definitiva", c.Definitiva)
 }
 
 // Post ...
@@ -91,8 +91,8 @@ func (c *EstudianteController) Definitiva(){
 		c.Data["mesaage"] = "Error service GetOne: The request contains an incorrect parameter or no record exists"
 		c.Abort("404")
 	}
-
-	v := models.Estudiante{Id: id, notaDef: helpers.Definitiva(res.nota1, res.nota2, res.nota3)}
+	var def = helpers.Definitiva(res.Nota1, res.Nota2, res.Nota3)
+	v := models.Estudiante{Id: id, NotaDef: def}
 	if err := request.SendJson(beego.AppConfig.String("UrlCrud")+"/estudiante/"+IdEstudiante, &res, v); err == nil{
 		c.Data["json"] = map[string]interface{}{"Success": true, "Status": "200", "Message": "Request successful", "Data": res}
 	} else {

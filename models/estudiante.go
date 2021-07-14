@@ -1,11 +1,11 @@
 package models
 
 type Estudiante struct{
-	id 					int
-	uqCodgigoEstudiante float64
-	codMateria 			float64
-	nota1 				float64
-	nota2 				float64
-	nota3 				float64
-	notaDef 			float64
+	Id 					int
+	UqCodgigoEstudiante float64
+	CodMateria 			float64
+	Nota1 				float64
+	Nota2 				float64
+	Nota3 				float64
+	NotaDef 			float64
 }
