@@ -1,9 +1,9 @@
 package controllers
 
 import (
-	"fmt"
 	"github.com/astaxie/beego"
-	"github.com/jorgec815/notas_api_mid/models"
+	"github.com/astaxie/beego/logs"
+	"github.com/udistrital/utils_oas/request"
 )
 
 // EstudianteController operations for Estudiante
@@ -77,13 +77,17 @@ func (c *EstudianteController) Delete() {
 
 }
 
-func (c *EstudianteController) CalcularDefinitiva() (estudiante []models.Estudiante){
-	idStr := c.Ctx.Input.Param(":id")
-	if err := request.GetJson(beego.AppConfig.String("UrlCrud")+"/estudiante/:"+idStr, &estudiante); err == nil{
-		fmt.Println("Retornando estudiante")
+func (c *EstudianteController) CalcularDefinitiva(){
+	IdEstudiante := c.Ctx.Input.Param(":id")
+
+	var res map[string]interface{}
+
+	if err := request.GetJson(beego.AppConfig.String("UrlCrud")+"/estudiante/"+IdEstudiante, &res); err == nil{
+		logs.Error(err)
+		c.Data["mesaage"] = "Error service GetOne: The request contains an incorrect parameter or no record exists"
+		c.Abort("404")
 	}else{
-		fmt.Println("error en Id")
+		c.Data["json"] = map[string]interface{}{"Success": true, "Status": "200", "Message": "Request successful", "Data": res}
 	}
-	fmt.Println("estudiante" + estudiante)
-	return
+	c.ServeJSON()
 }

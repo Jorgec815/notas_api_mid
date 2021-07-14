@@ -1,3 +1,5 @@
+package models
+
 type Estudiante struct{
 	id 					int
 	uqCodgigoEstudiante int
