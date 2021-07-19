@@ -1,11 +1,12 @@
 package controllers
 
 import (
+	"encoding/json"
 	"github.com/astaxie/beego"
 	"github.com/astaxie/beego/logs"
 	"github.com/udistrital/utils_oas/request"
 	"github.com/jorgec815/notas_api_mid/models"
-	"github.com/jorgec815/notas_api_mid/helpers"
+	//"github.com/jorgec815/notas_api_mid/helpers"
 )
 
 // EstudianteController operations for Estudiante
@@ -15,7 +16,9 @@ type EstudianteController struct {
 
 // URLMapping ...
 func (c *EstudianteController) URLMapping() {
-	c.Mapping("Definitiva", c.Definitiva)
+	c.Mapping("GetOne", c.GetOne)
+	c.Mapping("Post", c.Post)
+	c.Mapping("Put", c.Put)
 }
 
 // Post ...
@@ -27,6 +30,33 @@ func (c *EstudianteController) URLMapping() {
 // @router / [post]
 func (c *EstudianteController) Post() {
 
+	var estudiante models.Estudiante			//variable de tipo Estudiante
+	var env map[string]interface{}				//interface que se va enviar
+	var res map[string]interface{}				//interface que se va recibir como respuesta
+
+
+	json.Unmarshal(c.Ctx.Input.RequestBody, &env) //se coloca el body dentro del interface
+	jsonString, _:= json.Marshal(env)				//se pasa el interface a un string
+	json.Unmarshal(jsonString, &estudiante)			//se pasa el string a una estructura de tipo estudiante
+	
+	
+	estudiante.NotaDef = calcularDefinitiva(estudiante.Nota1, estudiante.Nota2, estudiante.Nota3) //se realiza el cálculo de la nota
+	e,  _:= json.Marshal(estudiante); 		//se usar una variable auxiliar para pasar de una estructura a un []byte
+	json.Unmarshal(e, &env)			//se pasa el []byte a la interface que se va enviar
+
+	//se realiza la petición al CRUD
+
+	if err:= request.SendJson(beego.AppConfig.String("UrlCrud")+"/estudiante", "POST", &res, env); err == nil{
+
+		c.Data["json"] = res
+	}else{
+		logs.Error(err)
+		c.Abort("404")
+	}	
+
+		
+	c.ServeJSON()
+
 }
 
 // GetOne ...
@@ -37,7 +67,17 @@ func (c *EstudianteController) Post() {
 // @Failure 403 :id is empty
 // @router /:id [get]
 func (c *EstudianteController) GetOne() {
+	IdEstudiante := c.Ctx.Input.Param(":id")
 
+	var res map[string]interface{}
+
+	if err := request.GetJson(beego.AppConfig.String("UrlCrud")+"/estudiante/"+IdEstudiante, &res); err == nil{
+		c.Data["json"] = res
+	}else{
+		logs.Error(err)
+		c.Abort("404")
+	}
+	c.ServeJSON()
 }
 
 // GetAll ...
@@ -65,6 +105,30 @@ func (c *EstudianteController) GetAll() {
 // @Failure 403 :id is not int
 // @router /:id [put]
 func (c *EstudianteController) Put() {
+	IdEstudiante := c.Ctx.Input.Param(":id")
+
+	var estudiante models.Estudiante			//variable de tipo Estudiante
+	var env map[string]interface{}				//interface que se va enviar
+	var res map[string]interface{}				//interface que se va recibir como respuesta
+
+	json.Unmarshal(c.Ctx.Input.RequestBody, &env) //se coloca el body dentro del interface
+	jsonString, _:= json.Marshal(env)				//se pasa el interface a un string
+	json.Unmarshal(jsonString, &estudiante)			//se pasa el string a una estructura de tipo estudiante
+	
+	estudiante.NotaDef = calcularDefinitiva(estudiante.Nota1, estudiante.Nota2, estudiante.Nota3) //se realiza el cálculo de la nota
+	e,  _:= json.Marshal(estudiante); 		//se usar una variable auxiliar para pasar de una estructura a un []byte
+	json.Unmarshal(e, &env)			//se pasa el []byte a la interface que se va enviar
+
+	if err:= request.SendJson(beego.AppConfig.String("UrlCrud")+"/estudiante/"+IdEstudiante, "PUT", &res, env); err == nil{
+
+		c.Data["json"] = res
+	}else{
+		logs.Error(err)
+		c.Abort("404")
+	}	
+
+		
+	c.ServeJSON()
 
 }
 
@@ -79,26 +143,6 @@ func (c *EstudianteController) Delete() {
 
 }
 
-func (c *EstudianteController) Definitiva(){
-	IdEstudiante := c.Ctx.Input.Param(":id")
-
-	var res map[string]interface{}
-
-	if err := request.GetJson(beego.AppConfig.String("UrlCrud")+"/estudiante/"+IdEstudiante, &res); err == nil{
-		c.Data["json"] = map[string]interface{}{"Success": true, "Status": "200", "Message": "Request successful", "Data": res}
-	}else{
-		logs.Error(err)
-		c.Data["mesaage"] = "Error service GetOne: The request contains an incorrect parameter or no record exists"
-		c.Abort("404")
-	}
-	var def = helpers.Definitiva(res.Nota1, res.Nota2, res.Nota3)
-	v := models.Estudiante{Id: id, NotaDef: def}
-	if err := request.SendJson(beego.AppConfig.String("UrlCrud")+"/estudiante/"+IdEstudiante, &res, v); err == nil{
-		c.Data["json"] = map[string]interface{}{"Success": true, "Status": "200", "Message": "Request successful", "Data": res}
-	} else {
-		logs.Error(err)
-		c.Data["mesaage"] = "Error service Put: The request contains an incorrect data type or an invalid parameter"
-		c.Abort("400")
-	}
-	c.ServeJSON()
+func calcularDefinitiva (nota1 float64, nota2 float64, nota3 float64) float64{
+	return ((nota1*0.35)+(nota2*0.35)+(nota3*0.3))
 }
